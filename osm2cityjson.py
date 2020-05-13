@@ -104,9 +104,12 @@ def main():
             if is_road(feature):
                 add_cityobject(feature, cm)
     
-    if (len(sys.argv) > 1):
-        with open(sys.argv[1], 'w') as file:
+    if (len(sys.argv) > 2):
+        osm_file = sys.argv[1]
+        with open(sys.argv[2], 'w') as file:
             json.dump(cm, file)
+    else:
+        print("Please provide an input and output file.")
 
 if __name__ == "__main__":
     main()
