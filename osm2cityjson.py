@@ -92,6 +92,11 @@ def add_cityobject(feature, citymodel):
 def main():
     driver = ogr.GetDriverByName("OSM")
 
+    if (len(sys.argv) > 2):
+        osm_file = sys.argv[1]
+    else:
+        print("Please provide an input and output file.")
+
     datasource = driver.Open(osm_file, 0)
 
     if datasource is None:
@@ -105,11 +110,8 @@ def main():
                 add_cityobject(feature, cm)
     
     if (len(sys.argv) > 2):
-        osm_file = sys.argv[1]
         with open(sys.argv[2], 'w') as file:
             json.dump(cm, file)
-    else:
-        print("Please provide an input and output file.")
 
 if __name__ == "__main__":
     main()
