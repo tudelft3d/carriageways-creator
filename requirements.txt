@@ -3,3 +3,4 @@ gdal==3.0.4
 geopandas
 osmnx
 jupyter
+folium
