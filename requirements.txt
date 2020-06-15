@@ -4,3 +4,7 @@ geopandas
 osmnx
 jupyter
 folium
+sqlalchemy
+geoalchemy2
+psycopg2
+cityhash
