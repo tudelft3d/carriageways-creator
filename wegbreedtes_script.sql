@@ -222,7 +222,7 @@ LOOP
     -- Per groter aantal (b.v. 1000) wegvakken bijhouden hoe ver ie is.  
     IF (tel % 500 = 0) THEN RAISE NOTICE 'Tel %, Wegvak %', tel, currentlink.wegvakid; END IF;
     EXECUTE format('INSERT INTO breedte_analyse_nieuw.dwarslijntjes(typeweg, wegvakid, geom, lengte, dwarslijn_id)
-    SELECT uu.bgt_functie AS typeweg, currentlink.wegvakid AS wegvakid, ST_Multi(geom)::geometry(MultiLinestring, %1$s) AS geom, ST_Length(geom)::numeric(6,2) AS lengte, gid AS dwarslijn_id
+    SELECT uu.bgt_functie AS typeweg, %2$s AS wegvakid, ST_Multi(geom)::geometry(MultiLinestring, %1$s) AS geom, ST_Length(geom)::numeric(6,2) AS lengte, gid AS dwarslijn_id
     FROM
     (
       -- Dwarslijntjes afknippen op intersection met BGT vlakken. ST_LineMerge(ST_Union) is nodig vanwege procedure bij ''snappie''				
@@ -236,7 +236,7 @@ LOOP
           -- Startpunt lijnstukjes: middelpunt van dwarslijntjes							
           SELECT gid, ST_SetSRID(ST_Startpoint(geom), %1$s) AS geom, 
           ST_AsText(ST_Startpoint(geom)) AS geo, ST_Azimuth(ST_LineInterpolatePoint(geom, 0), ST_LineInterpolatePoint(geom, 0.1)) AS hoek
-          FROM breedte_analyse_nieuw.wegvakken_knip WHERE wegvakid = currentlink.wegvakid
+          FROM breedte_analyse_nieuw.wegvakken_knip WHERE wegvakid = %2$s
         ) AS puntjes
       ) AS l
       JOIN 
@@ -246,7 +246,7 @@ LOOP
         SELECT DISTINCT b.bgt_functie, ST_Buffer(b.geometrie_vlak,0,999) AS geom 
         --SELECT b.bgt_functie, ST_Union(geometrie_vlak) AS geom 
         FROM bgt.wegdeel AS b 
-        JOIN (SELECT ST_Buffer(geom,10,2) AS geom FROM breedte_analyse_nieuw.wegvakken_knip WHERE wegvakid = currentlink.wegvakid) AS g 
+        JOIN (SELECT ST_Buffer(geom,10,2) AS geom FROM breedte_analyse_nieuw.wegvakken_knip WHERE wegvakid = %2$s) AS g 
         ON b.geometrie_vlak && g.geom 
         WHERE (b.bgt_functie IN (''fietspad'', ''OV-baan'') OR b.bgt_functie ILIKE ''rijbaan%%'') -- Eventueel ook IsValid geometrie
         -- GROUP BY b.bgt_functie
