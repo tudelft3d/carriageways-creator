@@ -46,11 +46,12 @@ Wijzigingen:
 20200427: Nieuwe generieke versie
           Nieuwe functienaam: wh_wegbreedte_bgt_generiek
           wegvak ID komt in onafhankelijke kolom 'wegvakid': die kolom mag dus nog niet bestaan. Kolom met wegvakken moet als argument worden opgegeven
+20200813: nieuwe versie met een extra argumentie voor het projectie nummer. Dat is van Anna en Stelios. Goedemiddag.
 
 *********************************************************/
 
 DROP FUNCTION IF EXISTS wh_wegbreedte_bgt_generiek;
-CREATE FUNCTION wh_wegbreedte_bgt_generiek(wegennetwerk regclass, wegvak_kolom TEXT, test boolean, wegvak INT8) RETURNS text AS 
+CREATE FUNCTION wh_wegbreedte_bgt_generiek(wegennetwerk regclass, wegvak_kolom TEXT, test boolean, wegvak INT8, epsg integer) RETURNS text AS 
 $$
 DECLARE
 	--wnetwerk ALIAS FOR $1;
@@ -91,12 +92,7 @@ RAISE NOTICE 'Aantal wegvakken: %', totaal_aantal;
 
 -- wegennetwerk opgeknipt
 DROP TABLE IF EXISTS breedte_analyse_nieuw.wegvakken_knip;
-CREATE TABLE breedte_analyse_nieuw.wegvakken_knip  
-(gid SERIAL PRIMARY KEY,
-wegvakid INT8,
-geom geometry(Linestring, 28992),
-n INTEGER,
-lengte numeric(10,2));
+EXECUTE format('CREATE TABLE breedte_analyse_nieuw.wegvakken_knip (gid SERIAL PRIMARY KEY, wegvakid INT8, geom geometry(Linestring, %s), n INTEGER, lengte numeric(10,2));', epsg);
 
 CREATE INDEX idx_geoco_wegvakken_knip_geom ON breedte_analyse_nieuw.wegvakken_knip USING gist(geom);
 CREATE INDEX idx_geoco_wegvakken_knip_gid ON breedte_analyse_nieuw.wegvakken_knip USING btree(gid);
@@ -104,11 +100,11 @@ CREATE INDEX idx_geoco_wegvakken_knip_wegvakid ON breedte_analyse_nieuw.wegvakke
 
 -- gemiddeldebreedte
 DROP TABLE IF EXISTS breedte_analyse_nieuw.gemiddeldebreedte;
-CREATE TABLE breedte_analyse_nieuw.gemiddeldebreedte
+EXECUTE format('CREATE TABLE breedte_analyse_nieuw.gemiddeldebreedte
 (gid SERIAL PRIMARY KEY,
 typeweg VARCHAR,
 wegvakid INT8,
-geom GEOMETRY(Multilinestring,28992),
+geom GEOMETRY(Multilinestring, %s),
 gem_breedte numeric(10,2),
 dev_breedte numeric(10,2),
 min_breedte numeric(10,2),
@@ -117,7 +113,7 @@ oper_breedte numeric(10,2), -- operationele breedte: gemiddelde na verwijderen u
 afst_s numeric(10,2), -- gemiddelde afstand route tot BGT vlak (per wegtype), om te checken welke weg moet als er meerdere BGT wegtypen aan hangen
 aantal int2,
 aantal_op int2) -- aantal dwarslijntjes na weghalen uitbijters
-;
+;', epsg);
 
 CREATE INDEX idx_gemiddeldebreedte_wegvakid ON breedte_analyse_nieuw.gemiddeldebreedte USING btree(wegvakid);
 CREATE INDEX idx_gemiddeldebreedte_gid ON breedte_analyse_nieuw.gemiddeldebreedte USING btree(gid);
@@ -125,13 +121,13 @@ CREATE INDEX idx_gemiddeldebreedte_geom ON breedte_analyse_nieuw.gemiddeldebreed
 
 -- dwarslijntjes (tijdelijk)
 DROP TABLE IF EXISTS breedte_analyse_nieuw.dwarslijntjes;
-CREATE TABLE breedte_analyse_nieuw.dwarslijntjes
+EXECUTE format('CREATE TABLE breedte_analyse_nieuw.dwarslijntjes
 (gid SERIAL PRIMARY KEY,
 typeweg VARCHAR,
 wegvakid INT8,
-geom GEOMETRY(MultiLinestring, 28992),
+geom GEOMETRY(MultiLinestring, %s),
 lengte numeric,
-dwarslijn_id INTEGER);
+dwarslijn_id INTEGER);', epsg);
 
 CREATE INDEX idx_dwarslijntjes_wegvakid ON breedte_analyse_nieuw.dwarslijntjes USING btree(wegvakid);
 CREATE INDEX idx_dwarslijntjes_gid ON breedte_analyse_nieuw.dwarslijntjes USING btree(gid);
@@ -139,17 +135,17 @@ CREATE INDEX idx_dwarslijntjes_geom ON breedte_analyse_nieuw.dwarslijntjes USING
 
 -- snappie (tijdelijk)
 DROP TABLE IF EXISTS breedte_analyse_nieuw.snappie;
-CREATE TABLE breedte_analyse_nieuw.snappie
+EXECUTE format('CREATE TABLE breedte_analyse_nieuw.snappie
 (gid SERIAL PRIMARY KEY,
 typeweg VARCHAR,
 wegvakid INT8, 
 dwarslijn_id INTEGER,
 gidd1 INT8,
-geom GEOMETRY(MultiLinestring, 28992),
+geom GEOMETRY(MultiLinestring, %s),
 lengte numeric(8,2),
 afstand numeric(8,2),
 afstand_s numeric(8,2)
-);
+);', epsg);
 
 CREATE INDEX idx_snappie_wegvakid ON breedte_analyse_nieuw.snappie USING btree(wegvakid);
 CREATE INDEX idx_snappie_gid ON breedte_analyse_nieuw.snappie USING btree(gid);
@@ -159,7 +155,7 @@ CREATE INDEX idx_snappie_typeweg ON breedte_analyse_nieuw.snappie USING btree(ty
 
 -- dwarslijntjes_uniek, blijft in eindresultaat
 DROP TABLE IF EXISTS breedte_analyse_nieuw.dwarslijntjes_uniek;
-CREATE TABLE breedte_analyse_nieuw.dwarslijntjes_uniek
+EXECUTE format('CREATE TABLE breedte_analyse_nieuw.dwarslijntjes_uniek
 (gid SERIAL PRIMARY KEY,
 typeweg VARCHAR, 
 wegvakid INT8, 
@@ -167,7 +163,7 @@ afstand NUMERIC,
 lengte NUMERIC, 
 dwarslijn_id INTEGER, 
 afwijking CHAR(1), -- NULL (binnen -1 en +1 STD), H (hoger dan gemiddelde + STD), L (lager dan gemiddelde - STD)
-geom GEOMETRY(MultiLinestring, 28992));
+geom GEOMETRY(MultiLinestring, %s));', epsg);
 
 CREATE INDEX idx_dwarslijntjes_uniek_wegvakid ON breedte_analyse_nieuw.dwarslijntjes_uniek USING btree(wegvakid);
 CREATE INDEX idx_dwarslijntjes_uniek_gid ON breedte_analyse_nieuw.dwarslijntjes_uniek USING btree(gid);
@@ -188,8 +184,8 @@ LOOP
   -- RAISE NOTICE 'Aantal dwarslijntjes totaal: %', qqz;
   -- Deel wegennetwerk opknippen
   TRUNCATE TABLE breedte_analyse_nieuw.wegvakken_knip;
-  INSERT INTO breedte_analyse_nieuw.wegvakken_knip (wegvakid, geom, n, lengte) 
-  SELECT wegvakid, geom::geometry(Linestring, 28992), n, lengte
+  EXECUTE format('INSERT INTO breedte_analyse_nieuw.wegvakken_knip (wegvakid, geom, n, lengte) 
+  SELECT wegvakid, geom::geometry(Linestring, %s), n, lengte
   FROM
   ( 
     SELECT * FROM 
@@ -198,13 +194,13 @@ LOOP
       FROM
       (
         SELECT wegvakid, ST_LineMerge(geom) AS geom, ST_Length(geom) AS lengte
-        FROM (SELECT * FROM breedte_analyse_nieuw.wegennetwerk ORDER BY wegvakid LIMIT aantalperkeer OFFSET begindeel) AS deelnetwerk
+        FROM (SELECT * FROM breedte_analyse_nieuw.wegennetwerk ORDER BY wegvakid LIMIT %s OFFSET %s) AS deelnetwerk
         -- WHERE ST_Length(geom) > 100
       ) AS t
       CROSS JOIN generate_series(1,9) AS n
     ) AS lang
   ) AS totaal
-  ;
+  ;', epsg, aantalperkeer, begindeel);
   SELECT COUNT(*) FROM breedte_analyse_nieuw.wegvakken_knip INTO qqz;
   -- RAISE NOTICE 'Aantal geknipte wegvakken: %', qqz;
 
@@ -225,20 +221,20 @@ LOOP
     -- RAISE NOTICE 'Verwerken wegvakid %', currentlink.wegvakid;
     -- Per groter aantal (b.v. 1000) wegvakken bijhouden hoe ver ie is.  
     IF (tel % 500 = 0) THEN RAISE NOTICE 'Tel %, Wegvak %', tel, currentlink.wegvakid; END IF;
-    INSERT INTO breedte_analyse_nieuw.dwarslijntjes(typeweg, wegvakid, geom, lengte, dwarslijn_id)
-    SELECT uu.bgt_functie AS typeweg, currentlink.wegvakid AS wegvakid, ST_Multi(geom)::geometry(MultiLinestring, 28992) AS geom, ST_Length(geom)::numeric(6,2) AS lengte, gid AS dwarslijn_id
+    EXECUTE format('INSERT INTO breedte_analyse_nieuw.dwarslijntjes(typeweg, wegvakid, geom, lengte, dwarslijn_id)
+    SELECT uu.bgt_functie AS typeweg, currentlink.wegvakid AS wegvakid, ST_Multi(geom)::geometry(MultiLinestring, %1$s) AS geom, ST_Length(geom)::numeric(6,2) AS lengte, gid AS dwarslijn_id
     FROM
     (
-      -- Dwarslijntjes afknippen op intersection met BGT vlakken. ST_LineMerge(ST_Union) is nodig vanwege procedure bij 'snappie'				
+      -- Dwarslijntjes afknippen op intersection met BGT vlakken. ST_LineMerge(ST_Union) is nodig vanwege procedure bij ''snappie''				
       SELECT l.gid, u.bgt_functie, (ST_Dump(ST_LineMerge(ST_Union(ST_Intersection(l.geom, u.geom))))).geom AS geom
       FROM
       (
         -- Dwarslijntjes maken: max. breedte vastzetten op 15 (wellicht groter maken?)				
-        SELECT gid, geo, hoek, ST_SetSRID(ST_Rotate(ST_MakeLine(ST_MakePoint(ST_X(geom) - 15,ST_Y(geom)), ST_MakePoint(ST_X(geom) + 15,ST_Y(geom))),-hoek, geom), 28992) AS geom
+        SELECT gid, geo, hoek, ST_SetSRID(ST_Rotate(ST_MakeLine(ST_MakePoint(ST_X(geom) - 15,ST_Y(geom)), ST_MakePoint(ST_X(geom) + 15,ST_Y(geom))),-hoek, geom), %1$s) AS geom
         FROM 
         (
           -- Startpunt lijnstukjes: middelpunt van dwarslijntjes							
-          SELECT gid, ST_SetSRID(ST_Startpoint(geom), 28992) AS geom, 
+          SELECT gid, ST_SetSRID(ST_Startpoint(geom), %1$s) AS geom, 
           ST_AsText(ST_Startpoint(geom)) AS geo, ST_Azimuth(ST_LineInterpolatePoint(geom, 0), ST_LineInterpolatePoint(geom, 0.1)) AS hoek
           FROM breedte_analyse_nieuw.wegvakken_knip WHERE wegvakid = currentlink.wegvakid
         ) AS puntjes
@@ -252,13 +248,13 @@ LOOP
         FROM bgt.wegdeel AS b 
         JOIN (SELECT ST_Buffer(geom,10,2) AS geom FROM breedte_analyse_nieuw.wegvakken_knip WHERE wegvakid = currentlink.wegvakid) AS g 
         ON b.geometrie_vlak && g.geom 
-        WHERE (b.bgt_functie IN ('fietspad', 'OV-baan') OR b.bgt_functie ILIKE 'rijbaan%') -- Eventueel ook IsValid geometrie
+        WHERE (b.bgt_functie IN (''fietspad'', ''OV-baan'') OR b.bgt_functie ILIKE ''rijbaan%%'') -- Eventueel ook IsValid geometrie
         -- GROUP BY b.bgt_functie
       ) AS u
       ON ST_Intersects(l.geom, u.geom)
       GROUP BY gid, bgt_functie
     ) AS uu
-    ;
+    ;', epsg, currentlink.wegvakid);
     EXCEPTION
     WHEN OTHERS THEN 
     GET STACKED DIAGNOSTICS
