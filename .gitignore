@@ -140,3 +140,4 @@ cython_debug/
 # Output data
 output/
 output_breda/
+data/
