@@ -8,3 +8,4 @@ sqlalchemy
 geoalchemy2
 psycopg2
 cityhash
+tqdm
