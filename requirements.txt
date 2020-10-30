@@ -1,5 +1,5 @@
 numpy
-gdal==3.0.4
+gdal==2.2.4
 geopandas
 osmnx
 jupyter
