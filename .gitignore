@@ -141,3 +141,5 @@ cython_debug/
 output/
 output_breda/
 data/
+
+db_config.json
