@@ -7,7 +7,7 @@ carriageways = ""
 # Number of LoD1 edges
 # Polygon to LoD1 edge ratio
 # Polygon area mean + std + median
-# LoD1 edge length mean + stf + median
+# LoD1 edge length mean + std + median
 # LoD1 edge total length
 # LoD1 edge density (total edge length/area)
 # Area to LoD1 length ratio
