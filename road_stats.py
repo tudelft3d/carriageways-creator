@@ -5,6 +5,7 @@ carriageways = ""
 # Area of convex hull
 # Number of polygons
 # Number of LoD1 edges
+# Directionality of LoD1 edges (with graph)
 # Polygon to LoD1 edge ratio
 # Polygon area mean + std + median
 # LoD1 edge length mean + std + median
