@@ -12,6 +12,8 @@ carriageways = ""
 # LoD1 edge total length
 # LoD1 edge density (total edge length/area)
 # Area to LoD1 length ratio
+# Percentage overlap between linear and areal
+
 # Road width mean + std + median
 # Number of dual carriageways + proportion of all roads
 # Number of LoD2 edges + percentage increase from OSM
