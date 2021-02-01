@@ -18,6 +18,7 @@ carriageways = ""
 # LoD2 edges length mean + std + median
 # LoD2 edge total length
 # LoD2 edge density (total edge length/area)
+# Change in length between LoD1 and LoD2
 
 # Number of intersections 
 # Intersection Density
