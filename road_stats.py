@@ -5,18 +5,22 @@ carriageways = ""
 # Area of convex hull
 # Number of polygons
 # Number of LoD1 edges
+# Directionality of LoD1 edges (with graph)
 # Polygon to LoD1 edge ratio
 # Polygon area mean + std + median
 # LoD1 edge length mean + std + median
 # LoD1 edge total length
 # LoD1 edge density (total edge length/area)
 # Area to LoD1 length ratio
+# Percentage overlap between linear and areal
+
 # Road width mean + std + median
 # Number of dual carriageways + proportion of all roads
 # Number of LoD2 edges + percentage increase from OSM
 # LoD2 edges length mean + std + median
 # LoD2 edge total length
 # LoD2 edge density (total edge length/area)
+# Change in length between LoD1 and LoD2
 
 # Number of intersections 
 # Intersection Density
