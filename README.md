@@ -1,11 +1,9 @@
-# Roads generation scripts
+# Carriageways Creator (CC)
 
-Code that creates a multi-LoD CityJSON dataset with roads from OpenStreetMap and BGT data.
+Jupyter notebooks that create carriageways using areal dataset and OSM
 
 ## Requirements
 
-- `numpy`
-- `gdal`
 - `geopandas`
 - `osmnx`
 - `jupyter`
@@ -27,17 +25,16 @@ pip install -r requirements.txt
 
 ## Usage
 
-### The jupyter notebook
+### The jupyter notebooks
 
-Run `jupyter-notebook` and open `processing.ipynb`
+- Run `jupyter-notebook` and open `processing.ipynb`
+- Change the areal dataset path to your dataset
+- Run
 
-### The basic script does less, for now
+### Fix dead ends
 
-- Download an `osm` file (you can use QGIS or JOSM to do so).
-- Run `osm2cityjson.py`.
+- Some dead ends are broken. You can fix them with `fix_deadends.ipynb`.
 
-Main syntax is:
+### Stats
 
-```
-python osm2cityjson.py [input.osm] [output.json]
-```
+- You can extract stats using `road_stats.ipynb`
