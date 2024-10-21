@@ -1,5 +1,9 @@
 # Carriageways Creator (CC)
 
+<p align="center">
+	<img src="./CC.png"/>
+</p>
+
 Jupyter notebooks that create carriageways using areal dataset and OSM
 
 ## Requirements
